@@ -30,27 +30,27 @@ const (
 // Params describes the input parameters to the argon2 key derivation function.
 // The iterations parameter specifies the number of passes over the memory and the
 // memory parameter specifies the size of the memory in KiB. For example
-// memory=64*1024 sets the memory cost to ~64 MB. The number of threads can be
+// memory=64*1024 sets the memory cost to ~64 MB. The number of parallelism can be
 // adjusted to the number of available CPUs. The cost parameters should be
 // increased as memory latency and CPU parallelism increases. Remember to get a
 // good random salt.
 type Params struct {
-	Memory     uint32 // The amount of memory used by the algorithm (kibibytes)
-	Iterations uint32 // The number of iterations (passes) over the memory
-	Threads    uint8  // The number of threads (lanes) used by the algorithm
-	SaltLength uint32 // Length of the random salt. 16 bytes is recommended for password hashing
-	KeyLength  uint32 // Length of the generated key (password hash). 16 bytes or more is recommended
+	Memory      uint32 // The amount of memory used by the algorithm (kibibytes)
+	Iterations  uint32 // The number of iterations (passes) over the memory
+	Parallelism uint8  // The number of threads (lanes) used by the algorithm
+	SaltLength  uint32 // Length of the random salt. 16 bytes is recommended for password hashing
+	KeyLength   uint32 // Length of the generated key (password hash). 16 bytes or more is recommended
 }
 
 // DefaultParams provides sensible default inputs into
 // the argon2 function for interactive use.
 // The default key length is 256 bits.
 var DefaultParams = &Params{
-	Memory:     64 * 1024,
-	Iterations: 3,
-	Threads:    2,
-	SaltLength: 16,
-	KeyLength:  32,
+	Memory:      64 * 1024,
+	Iterations:  3,
+	Parallelism: 2,
+	SaltLength:  16,
+	KeyLength:   32,
 }
 
 // ErrInvalidHash is returned when function failed to parse
@@ -85,7 +85,7 @@ func GenerateFromPassword(password []byte, p *Params) ([]byte, error) {
 
 	// Pass the byte array password, salt and parameters to the argon2.IDKey
 	// function. This will generate a hash of the password using the Argon2id variation.
-	key := argon2.IDKey(password, salt, p.Iterations, p.Memory, p.Threads, p.KeyLength)
+	key := argon2.IDKey(password, salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
 
 	// Encode salt and hashed password to Base64
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
@@ -93,7 +93,7 @@ func GenerateFromPassword(password []byte, p *Params) ([]byte, error) {
 
 	// Prepend the params and the salt to the derived key,
 	// each separated by a "$" character.
-	return []byte(fmt.Sprintf("argon2id$%d$%d$%d$%d$%s$%s", argon2.Version, p.Memory, p.Iterations, p.Threads, b64Salt, b64Hash)), nil
+	return []byte(fmt.Sprintf("argon2id$%d$%d$%d$%d$%s$%s", argon2.Version, p.Memory, p.Iterations, p.Parallelism, b64Salt, b64Hash)), nil
 }
 
 // GenerateRandomBytes returns securely generated random bytes.
@@ -122,7 +122,7 @@ func CompareHashAndPassword(hash, password []byte) error {
 	}
 
 	// hashing the cleartext password with the same parameters and salt
-	otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Threads, p.KeyLength)
+	otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
 
 	// Check that the contents of the hashed passwords are identical. Note
 	// that we are using the subtle.ConstantTimeCompare() function for this
@@ -172,7 +172,7 @@ func decodeHash(encodedHash []byte) (p *Params, salt, hash []byte, err error) {
 	if err != nil {
 		return nil, nil, nil, ErrInvalidHash
 	}
-	p.Threads = uint8(parallelism)
+	p.Parallelism = uint8(parallelism)
 
 	salt, err = base64.RawStdEncoding.DecodeString(vals[5])
 	if err != nil {
@@ -202,8 +202,8 @@ func (p *Params) Check() error {
 		return ErrInvalidParams
 	}
 
-	// Validate Threads
-	if p.Threads < 1 {
+	// Validate Parallelism
+	if p.Parallelism < 1 {
 		return ErrInvalidParams
 	}
 
