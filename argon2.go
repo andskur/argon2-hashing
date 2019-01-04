@@ -21,15 +21,13 @@ import (
 
 // Constants for validate incoming Params.
 const (
-	minMemoryValue = 32 * 1024 // the minimum allowed memory amount
-	minIteration   = 1         // the minimum time passes over the memory
-	minThreads     = 1         // the minimum using threads
-	minKeyLength   = 16        // the minimum derived key length in bytes
-	minSaltLength  = 8         // the minimum allowed salt length in bytes
+	minMemoryValue = 8 * 1024 // the minimum allowed memory amount
+	minKeyLength   = 16       // the minimum derived key length in bytes
+	minSaltLength  = 8        // the minimum allowed salt length in bytes
 )
 
 // Params describes the input parameters to the argon2 key derivation function.
-// The time parameter specifies the number of passes over the memory and the
+// The iterations parameter specifies the number of passes over the memory and the
 // memory parameter specifies the size of the memory in KiB. For example
 // memory=64*1024 sets the memory cost to ~64 MB. The number of threads can be
 // adjusted to the number of available CPUs. The cost parameters should be
@@ -58,6 +56,10 @@ var DefaultParams = &Params{
 // provided argon2 hash and/or given parameters.
 var ErrInvalidHash = errors.New("argon2: the encoded hash is not in the correct format")
 
+// ErrInvalidParams is returned when the cost parameters (N, r, p), salt length
+// or derived key length are invalid.
+var ErrInvalidParams = errors.New("argon2: the parameters provided are invalid")
+
 // ErrIncompatibleVersion is returned when version of provided argon2 hash
 // s incompatible with current argon2 algorithm
 var ErrIncompatibleVersion = errors.New("argon2: incompatible version of argon2")
@@ -76,6 +78,10 @@ func GenerateFromPassword(password []byte, p *Params) ([]byte, error) {
 		return nil, err
 	}
 
+	if err := p.Check(); err != nil {
+		return nil, err
+	}
+
 	// Pass the byte array password, salt and parameters to the argon2.IDKey
 	// function. This will generate a hash of the password using the Argon2id variation.
 	key := argon2.IDKey(password, salt, p.Iterations, p.Memory, p.Threads, p.KeyLength)
@@ -84,6 +90,8 @@ func GenerateFromPassword(password []byte, p *Params) ([]byte, error) {
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(key)
 
+	// Prepend the params and the salt to the derived key,
+	// each separated by a "$" character.
 	return []byte(fmt.Sprintf("argon2id$%d$%d$%d$%d$%s$%s", argon2.Version, p.Memory, p.Iterations, p.Threads, b64Salt, b64Hash)), nil
 }
 
@@ -106,11 +114,13 @@ func GenerateRandomBytes(n uint32) ([]byte, error) {
 // The comparison performed by this function is constant-time. It returns nil
 // on success, and an error if the derived keys do not match.
 func CompareHashAndPassword(hash, password []byte) error {
+	// Decode existing hash, retrieve params and salt.
 	p, salt, hash, err := decodeHash(hash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// hashing the cleartext password with the same parameters and salt
 	otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Threads, p.KeyLength)
 
 	// Check that the contents of the hashed passwords are identical. Note
@@ -119,9 +129,13 @@ func CompareHashAndPassword(hash, password []byte) error {
 	if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
 		return nil
 	}
+
 	return ErrMismatchedHashAndPassword
 }
 
+// decodeHash extracts the parameters, salt and derived key from the
+// provided hash. It returns an error if the hash format is invalid and/or
+// the parameters are invalid.
 func decodeHash(encodedHash []byte) (p *Params, salt, hash []byte, err error) {
 	vals := strings.Split(string(encodedHash), "$")
 
@@ -172,4 +186,35 @@ func decodeHash(encodedHash []byte) (p *Params, salt, hash []byte, err error) {
 	p.KeyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
+}
+
+// Check checks that the parameters are valid for input into the
+// argon2 key derivation function.
+func (p *Params) Check() error {
+	// Validate Memory
+	if p.Memory < minMemoryValue {
+		return ErrInvalidParams
+	}
+
+	// Validate Iterations
+	if p.Iterations < 1 {
+		return ErrInvalidParams
+	}
+
+	// Validate Threads
+	if p.Threads < 1 {
+		return ErrInvalidParams
+	}
+
+	// Validate salt length
+	if p.SaltLength < minSaltLength {
+		return ErrInvalidParams
+	}
+
+	// Validate key length
+	if p.KeyLength < minKeyLength {
+		return ErrInvalidParams
+	}
+
+	return nil
 }
