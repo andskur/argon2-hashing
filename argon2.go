@@ -1,3 +1,9 @@
+// Package argon2 provides a convenience wrapper around Go's argon2 package
+// Argon2 was the winner of the Password Hashing Competition
+// that makes it easier to securely derive strong keys from weak
+// inputs (i.e. user passwords).
+// The package provides password generation, constant-time comparison and
+// parameter upgrading for argon2 derived keys.
 package argon2
 
 import (
