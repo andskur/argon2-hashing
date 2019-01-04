@@ -19,22 +19,32 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-var (
-	ErrInvalidHash         = errors.New("the encoded hash is not in the correct format")
-	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
-	PasswordNotMatch       = errors.New("passwords not match")
+// Constants for validate incoming Params.
+const (
+	minMemoryValue = 32 * 1024 // the minimum allowed memory amount
+	minIteration   = 1         // the minimum time passes over the memory
+	minThreads     = 1         // the minimum using threads
+	minKeyLength   = 16        // the minimum derived key length in bytes
+	minSaltLength  = 8         // the minimum allowed salt length in bytes
 )
 
-// Params describes the input parameters to the argon2 key derivation function
+// Params describes the input parameters to the argon2 key derivation function.
+// The time parameter specifies the number of passes over the memory and the
+// memory parameter specifies the size of the memory in KiB. For example
+// memory=64*1024 sets the memory cost to ~64 MB. The number of threads can be
+// adjusted to the number of available CPUs. The cost parameters should be
+// increased as memory latency and CPU parallelism increases. Remember to get a
+// good random salt.
 type Params struct {
 	Memory     uint32 // The amount of memory used by the algorithm (kibibytes)
-	Iterations uint32 // The number of iterations (passes) over the memory.
-	Threads    uint8  // The number of threads (lanes) used by the algorithm.
-	SaltLength uint32 // Length of the random salt. 16 bytes is recommended for password hashing.
-	KeyLength  uint32 // Length of the generated key (password hash). 16 bytes or more is recommended.
+	Iterations uint32 // The number of iterations (passes) over the memory
+	Threads    uint8  // The number of threads (lanes) used by the algorithm
+	SaltLength uint32 // Length of the random salt. 16 bytes is recommended for password hashing
+	KeyLength  uint32 // Length of the generated key (password hash). 16 bytes or more is recommended
 }
 
-// DefaultParams provides sensible default inputs into the argon2 function for interactive use.
+// DefaultParams provides sensible default inputs into
+// the argon2 function for interactive use.
 // The default key length is 256 bits.
 var DefaultParams = &Params{
 	Memory:     64 * 1024,
@@ -43,6 +53,18 @@ var DefaultParams = &Params{
 	SaltLength: 16,
 	KeyLength:  32,
 }
+
+// ErrInvalidHash is returned when function failed to parse
+// provided argon2 hash and/or given parameters.
+var ErrInvalidHash = errors.New("argon2: the encoded hash is not in the correct format")
+
+// ErrIncompatibleVersion is returned when version of provided argon2 hash
+// s incompatible with current argon2 algorithm
+var ErrIncompatibleVersion = errors.New("argon2: incompatible version of argon2")
+
+// ErrMismatchedHashAndPassword is returned when a password (hashed) and
+// given hash do not match.
+var ErrMismatchedHashAndPassword = errors.New("argon2: the hashed password does not match the hash of the given password")
 
 // GenerateFromPassword returns the derived key of the password using the
 // parameters provided. The parameters are prepended to the derived key and
@@ -97,7 +119,7 @@ func CompareHashAndPassword(hash, password []byte) error {
 	if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
 		return nil
 	}
-	return PasswordNotMatch
+	return ErrMismatchedHashAndPassword
 }
 
 func decodeHash(encodedHash []byte) (p *Params, salt, hash []byte, err error) {
