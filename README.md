@@ -13,7 +13,7 @@ With this library you can:
 Currently supported only Argon2id function.
 
 The API closely mirrors with Go's [Bcrypt library](https://godoc.org/golang.org/x/crypto/bcrypt)
- and Alex Edwards [simple-scrypt package](https://github.com/elithrar/simple-scrypt).
+ and Alex Edwards [simple-scrypt package](https://travis-ci.org/andskur/argon2-hashing).
 
 ## Installation
 
