@@ -54,7 +54,7 @@ func ExampleGenerateFromPassword() {
 		log.Fatal(err)
 	}
 
-	// Print the derived key - "argon2id$19$65536$3$2$R8kBdA675bqNJbhWntdlAA$X28Igb1N0MBO3IWOIPoS+JxLmhAx0KBUYe65BSEsMs8".
+	// Print the derived key - "argon2id$19$65536$3$2$R8kBdA675bqNJbhWntdlAA$X28Igb1N0MBO3IWOIPoS+JxLmhAx0KBUYe65BSEsMs8"
 	fmt.Printf("%s\n", hash)
 }
 
@@ -76,4 +76,19 @@ func TestCompareHashAndPassword(t *testing.T) {
 	if err := CompareHashAndPassword(invalidHash, []byte(password)); err == nil {
 		t.Fatalf("did not identify an invalid hash")
 	}
+}
+
+func ExampleCompareHashAndPassword() {
+	// e.g. r.PostFormValue("password")
+	passwordFromForm := "qwerty123"
+
+	// e.g. hash from database
+	hash := "qwerty123"
+
+	// Check password with a hash. Return an error if they don't match
+	err := CompareHashAndPassword([]byte(hash), []byte(passwordFromForm))
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Do something next
 }
