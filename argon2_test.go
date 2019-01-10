@@ -1,6 +1,8 @@
 package argon2
 
 import (
+	"fmt"
+	"log"
 	"testing"
 )
 
@@ -40,6 +42,20 @@ func TestGenerateFromPassword(t *testing.T) {
 			t.Fatalf("no error was returned when expected for params: %+v", v.params)
 		}
 	}
+}
+
+func ExampleGenerateFromPassword() {
+	// e.g. r.PostFormValue("password")
+	passwordFromForm := "qwerty123"
+
+	// Generates a derived key with default params
+	hash, err := GenerateFromPassword([]byte(passwordFromForm), DefaultParams)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print the derived key.
+	fmt.Printf("%s\n", hash)
 }
 
 func TestCompareHashAndPassword(t *testing.T) {
