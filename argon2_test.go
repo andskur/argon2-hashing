@@ -54,7 +54,7 @@ func ExampleGenerateFromPassword() {
 		log.Fatal(err)
 	}
 
-	// Print the derived key.
+	// Print the derived key - "argon2id$19$65536$3$2$R8kBdA675bqNJbhWntdlAA$X28Igb1N0MBO3IWOIPoS+JxLmhAx0KBUYe65BSEsMs8".
 	fmt.Printf("%s\n", hash)
 }
 
