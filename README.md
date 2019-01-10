@@ -1,5 +1,5 @@
 # argon2-hashing
-[![GoDoc](https://godoc.org/github.com/elithrar/simple-scrypt?status.svg)](https://godoc.org/github.com/andskur/argon2-hashing) [![Build Status](https://travis-ci.org/andskur/argon2-hashing.svg?branch=master)](https://travis-ci.org/elithrar/simple-scrypt)
+[![GoDoc](https://godoc.org/github.com/elithrar/simple-scrypt?status.svg)](https://godoc.org/github.com/andskur/argon2-hashing) [![Build Status](https://travis-ci.org/andskur/argon2-hashing.svg?branch=master)](https://travis-ci.org/andskur/argon2-hashing)
 
 **argon2-hashing** provides a light wrapper around Go's [argon2](https://godoc.org/golang.org/x/crypto/argon2) package.
 Argon2 was the winner of the [Password Hashing](https://password-hashing.net) Competition that makes it easier to securely derive strong keys from weak
@@ -13,7 +13,7 @@ With this library you can:
 Currently supported only Argon2id function.
 
 The API closely mirrors with Go's [Bcrypt library](https://godoc.org/golang.org/x/crypto/bcrypt)
- and Alex Edwards [simple-scrypt package](https://travis-ci.org/andskur/argon2-hashing).
+ and Alex Edwards [simple-scrypt package](https://github.com/elithrar/simple-scrypt).
 
 ## Installation
 
