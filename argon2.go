@@ -13,7 +13,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -118,7 +117,7 @@ func CompareHashAndPassword(hash, password []byte) error {
 	// Decode existing hash, retrieve params and salt.
 	p, salt, hash, err := decodeHash(hash)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// hashing the cleartext password with the same parameters and salt
