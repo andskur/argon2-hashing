@@ -101,8 +101,7 @@ func GenerateFromPassword(password []byte, p *Params) ([]byte, error) {
 // case the caller should not continue.
 func GenerateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
+	if _, err := rand.Read(b); err != nil {
 		return nil, err
 	}
 
