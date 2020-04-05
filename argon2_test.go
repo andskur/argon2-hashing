@@ -35,6 +35,14 @@ func TestCompareHashAndPassword(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid hash",
+			args: args{
+				hash:     []byte("dwiehduwehc8wh"),
+				password: []byte("qwerty123"),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -311,8 +319,28 @@ func Test_decodeHash(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "invalid params",
+			name:    "invalid argon2 version",
+			args:    args{[]byte("argon2id$10$65536$3$2$y9Mjl5CpHgKbRjloFZ5Agg$OuEhb6CmIeCMC3Jx3RgJFoeUSwo7S9OTrq20pFW/Fck")},
+			wantErr: true,
+		},
+		{
+			name:    "invalid memory",
 			args:    args{[]byte("argon2id$19$dsa$dw4w$de3$y9Mjl5CpHgKbRjloFZ5Agg$OuEhb6CmIeCMC3Jx3RgJFoeUSwo7S9OTrq20pFW/Fck")},
+			wantErr: true,
+		},
+		{
+			name:    "invalid iterations",
+			args:    args{[]byte("argon2id$19$65536$a$2$y9Mjl5CpHgKbRjloFZ5Agg$OuEhb6CmIeCMC3Jx3RgJFoeUSwo7S9OTrq20pFW/Fck")},
+			wantErr: true,
+		},
+		{
+			name:    "invalid parralelizm",
+			args:    args{[]byte("argon2id$19$65536$3$-2dsa1$y9Mjl5CpHgKbRjloFZ5Agg$OuEhb6CmIeCMC3Jx3RgJFoeUSwo7S9OTrq20pFW/Fck")},
+			wantErr: true,
+		},
+		{
+			name:    "invalid Salt Length",
+			args:    args{[]byte("argon2id$19$65536$3$0a$y9Mjl5CpHgKbRjloFZ5Agg$OuEhb6CmIeCMC3Jx3RgJFoeUSwo7S9OTrq20pFW/Fck")},
 			wantErr: true,
 		},
 	}
@@ -323,11 +351,6 @@ func Test_decodeHash(t *testing.T) {
 				t.Errorf("decodeHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
-			fmt.Println(gotP)
-			fmt.Println(gotSalt)
-			fmt.Println(gotHash)
-
 			if !reflect.DeepEqual(gotP, tt.wantP) {
 				t.Errorf("decodeHash() gotP = %v, want %v", gotP, tt.wantP)
 			}
