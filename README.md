@@ -1,5 +1,8 @@
 # argon2-hashing
-[![GoDoc](https://godoc.org/github.com/elithrar/simple-scrypt?status.svg)](https://godoc.org/github.com/andskur/argon2-hashing) [![Build Status](https://travis-ci.org/andskur/argon2-hashing.svg?branch=master)](https://travis-ci.org/andskur/argon2-hashing)
+[![GoDoc](https://godoc.org/github.com/andskur/argon22-hashing?status.svg)](https://pkg.go.dev/github.com/andskur/argon2-hashing?tab=doc)
+[![Build Status](https://travis-ci.org/andskur/argon2-hashing.svg?branch=master)](https://travis-ci.org/andskur/argon2-hashing)
+[![Go Report Card](https://goreportcard.com/badge/github.com/andskur/argon2-hashing)](https://goreportcard.com/report/github.com/andskur/argon2-hashing)
+[![]]()
 
 **argon2-hashing** provides a light wrapper around Go's [argon2](https://godoc.org/golang.org/x/crypto/argon2) package.
 Argon2 was the winner of the [Password Hashing](https://password-hashing.net) Competition that makes it easier to securely derive strong keys from weak
